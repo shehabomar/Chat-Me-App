@@ -5,8 +5,10 @@ const socketio = require("socket.io");
 const formatMessage = require("./utils/messages");
 const createAdapter = require("@socket.io/redis-adapter").createAdapter;
 const redis = require("redis");
+
 require("dotenv").config();
 const { createClient } = redis;
+
 const {
   userJoin,
   getCurrentUser,
@@ -24,10 +26,15 @@ app.use(express.static(path.join(__dirname, "public")));
 const botName = "Chat Me Bot";
 
 (async () => {
-  pubClient = createClient({ url: "redis://127.0.0.1:6379" });
-  await pubClient.connect();
-  subClient = pubClient.duplicate();
-  io.adapter(createAdapter(pubClient, subClient));
+  try{
+    const pubClient = createClient({ url: "redis://127.0.0.1:6379" });
+    await pubClient.connect();
+    const subClient = pubClient.duplicate();
+    io.adapter(createAdapter(pubClient, subClient));
+  }catch(err){
+    console.log(err);
+  }
+  
 })();
 
 // Run when client connects
@@ -39,7 +46,7 @@ io.on("connection", (socket) => {
     socket.join(user.room);
 
     // Welcome current user
-    socket.emit("message", formatMessage(botName, "Welcome to ChatCord!"));
+    socket.emit("message", formatMessage(botName, "Welcome to ChatMe!"));
 
     // Broadcast when a user connects
     socket.broadcast
